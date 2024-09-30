@@ -12,3 +12,5 @@ omz:
           - python # pyserver Starts an HTTP server on the current directory (use --directory for a different one)
           - terraform
           - rsync #examples rsync-synchronize rsync-update rsync-move rsync-copy
+  theme: agnoster
+ssh_key_path: "{{ lookup('env', 'HOME') }}/.ssh/personal/id_ed25519"

@@ -9,3 +9,6 @@ aliases:
 exports:
   - { name: 'PATH', value: '$PATH:/custom/path' }
   - { name: 'EDITOR', value: 'vim' }
+ssh_agent:
+  - eval "$(ssh-agent -s)"
+  - ssh-add "{{ ssh_key_path }}"
