@@ -1,0 +1,11 @@
+---
+omz_dependencies:
+  - zsh
+  - git
+omz_user: "{{ lookup('env', 'USER') }}"
+aliases:
+  - { name: 'll', command: 'ls -la' }
+  - { name: 'gs', command: 'git status' }
+exports:
+  - { name: 'PATH', value: '$PATH:/custom/path' }
+  - { name: 'EDITOR', value: 'vim' }

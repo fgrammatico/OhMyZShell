@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  become: true
+  vars:
+    omz_user: "{{ lookup('env', 'USER') }}"
+    home_dir: "{{ lookup('env', 'HOME') }}"
+  roles:
+    - role: OhMyZShell

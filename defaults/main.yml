@@ -1,0 +1,14 @@
+---
+zsh:
+  write_file: true
+  change_shell: true
+omz:
+  install: true
+  user: "{{ lookup('env', 'USER') }}"
+  plugins:
+          - git
+          - virtualenv
+          - copypath
+          - python # pyserver Starts an HTTP server on the current directory (use --directory for a different one)
+          - terraform
+          - rsync #examples rsync-synchronize rsync-update rsync-move rsync-copy

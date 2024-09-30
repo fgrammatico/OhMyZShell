@@ -1,0 +1,47 @@
+---
+- name: Set omz_user variable
+  set_fact:
+    omz_user: "{{ lookup('env', 'USER') }}"
+
+- name: Debug omz.install and zsh.change_shell variables
+  ansible.builtin.debug:
+    msg: "omz.install={{ omz.install | default('undefined') }}, zsh.change_shell={{ zsh.change_shell | default('undefined') }}"
+
+- name: Install Zsh
+  become: true
+  ansible.builtin.package:
+    name: zsh
+    state: present
+  register: zsh_install
+
+- name: Debug Zsh installation
+  ansible.builtin.debug:
+    msg: "Installed Zsh for user {{ omz_user }}."
+  when: zsh_install.changed
+
+- name: Set default shell for the specified user
+  become: true
+  ansible.builtin.command:
+    cmd: "chsh -s /bin/zsh {{ omz_user }}"
+  when: omz.install | default(false) and (zsh.change_shell | default(false))
+  register: set_shell_user
+  changed_when: set_shell_user.rc == 0
+
+- name: Notify that Zsh is set as default shell for the specified user
+  ansible.builtin.debug:
+    msg: "Zsh has been set as the default shell for {{ omz_user }}"
+  when: set_shell_user.rc == 0
+
+- name: Check if Zsh is the default shell for the specified user
+  ansible.builtin.shell: "getent passwd {{ omz_user }} | cut -d: -f7"
+  register: shell_output
+
+- name: Debug default shell check
+  ansible.builtin.debug:
+    msg: "Default shell for {{ omz_user }} is {{ shell_output.stdout }}."
+  when: shell_output.stdout is defined
+
+- name: Fail if Zsh is not set as the default shell for the specified user
+  ansible.builtin.fail:
+    msg: "Zsh is not set as the default shell for {{ omz_user }}"
+  when: shell_output.stdout != "/bin/zsh"

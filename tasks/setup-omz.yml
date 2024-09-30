@@ -1,0 +1,99 @@
+---
+- name: Set omz_user variable
+  set_fact:
+    omz_user: "{{ lookup('env', 'USER') }}"
+
+- name: Clone Oh My Zsh for the user
+  become: true
+  ansible.builtin.git:
+    repo: "https://github.com/ohmyzsh/ohmyzsh"
+    dest: "/home/{{ omz_user }}/.oh-my-zsh"
+    version: master
+    update: no
+  register: omz_clone
+
+- name: Debug Oh My Zsh clone
+  debug:
+    msg: "Cloned Oh My Zsh for user {{ omz_user }} at /home/{{ omz_user }}/.oh-my-zsh."
+  when: omz_clone.changed
+
+- name: Set correct permissions of Oh My Zsh folder
+  become: true
+  ansible.builtin.file:
+    path: "/home/{{ omz_user }}/.oh-my-zsh"
+    mode: "0700"
+    recurse: true
+    owner: "{{ omz_user }}"
+    group: "{{ omz_user }}"
+  register: omz_permissions
+
+- name: Debug Oh My Zsh permissions
+  debug:
+    msg: "Set permissions for Oh My Zsh folder at /home/{{ omz_user }}/.oh-my-zsh."
+  when: omz_permissions.changed
+
+- name: Ensure .zshrc exists for the user
+  become: true
+  ansible.builtin.file:
+    path: "/home/{{ omz_user }}/.zshrc"
+    state: touch
+    owner: "{{ omz_user }}"
+    group: "{{ omz_user }}"
+  register: zshrc_file
+
+- name: Debug .zshrc file creation
+  debug:
+    msg: "Ensured .zshrc file exists at /home/{{ omz_user }}/.zshrc for user {{ omz_user }}."
+  when: zshrc_file.changed
+
+- name: Update .zshrc with Oh My Zsh configuration
+  become: true
+  ansible.builtin.lineinfile:
+    path: "/home/{{ omz_user }}/.zshrc"
+    line: |
+      export ZSH="/home/{{ omz_user }}/.oh-my-zsh"
+      ZSH_THEME="agnoster"
+      plugins=(git virtualenv copypath python terraform rsync)
+      source $ZSH/oh-my-zsh.sh
+    owner: "{{ omz_user }}"
+    group: "{{ omz_user }}"
+  register: zshrc_update
+
+- name: Debug .zshrc update
+  debug:
+    msg: "Updated .zshrc with Oh My Zsh configuration for user {{ omz_user }}."
+  when: zshrc_update.changed
+
+- name: Add custom aliases to .zshrc
+  become: true
+  ansible.builtin.lineinfile:
+    path: "/home/{{ omz_user }}/.zshrc"
+    line: "alias {{ item.name }}='{{ item.command }}'"
+    insertafter: EOF
+    owner: "{{ omz_user }}"
+    group: "{{ omz_user }}"
+  loop: "{{ aliases }}"
+  register: alias_update
+
+- name: Debug alias update
+  debug:
+    msg: "Added custom alias {{ item.name }} to .zshrc for user {{ omz_user }}."
+  when: alias_update.changed
+  loop: "{{ aliases }}"
+
+- name: Add custom exports to .zshrc
+  become: true
+  ansible.builtin.lineinfile:
+    path: "/home/{{ omz_user }}/.zshrc"
+    line: "export {{ item.name }}={{ item.value }}"
+    insertafter: EOF
+    owner: "{{ omz_user }}"
+    group: "{{ omz_user }}"
+  loop: "{{ exports }}"
+  register: export_update
+
+- name: Debug export update
+  debug:
+    msg: "Added custom export {{ item.name }} to .zshrc for user {{ omz_user }}."
+  when: export_update.changed
+  loop: "{{ exports }}"
