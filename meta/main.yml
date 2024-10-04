@@ -1,6 +1,8 @@
 galaxy_info:
   author: fgrammatico
   description: Ansible role to install and configure Oh My Zsh.
+  role_name: OhMyZShell
+  namespace: fgrammatico
   company: Nyan Cat
   license: MIT
   min_ansible_version: 2.9
